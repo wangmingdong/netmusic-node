@@ -1,14 +1,20 @@
 var Encrypt = require('./crypto.js');
 var express = require('express');
 var http = require('http');
+var https = require('https');
 var crypto = require('crypto');
 var reqhttp = require("request");
+const fs = require('fs')
 var app = express();
 var dir = "/v1";
 var cookie = null;
 var user = {};
 var jsessionid = randomString('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKMNOPQRSTUVWXYZ\\/+',176) + ':' + (new Date).getTime(); 
 var nuid = randomString('0123456789abcdefghijklmnopqrstuvwxyz',32);
+
+var privateKey  = fs.readFileSync('sslcert/cert.key', 'utf8');
+var certificate = fs.readFileSync('sslcert/cert.crt', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
 function randomString(pattern, length){
   return Array.apply(null, {length: length}).map(() => (pattern[Math.floor(Math.random() * pattern.length)])).join('');
 }
@@ -1065,7 +1071,8 @@ app.all('*', function(req, res, next) {
 	res.header("Content-Type", "application/json;charset=utf-8");
 	next();
 });
-var server = app.listen(3000, function() {
+var httpsServer = https.createServer(credentials, app);
+var server = httpsServer.listen(3002, function() {
 	console.log("启动App");
 });
 
